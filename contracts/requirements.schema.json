@@ -1,0 +1,437 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/agentic-delivery-lab/agentic-delivery-requirements/requirements.schema.json",
+  "title": "Requirements catalog v1",
+  "$ref": "#/$defs/catalog",
+  "$defs": {
+    "catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "catalogId": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "requirements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/requirement"
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "catalogId",
+        "requirements"
+      ]
+    },
+    "requirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(QR|FR|PR|SH)-[0-9]{3}$"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "scopeIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "issue": {
+              "type": "string",
+              "format": "uri"
+            },
+            "repository": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+            },
+            "sourceCommit": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[^\\s]+$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "issue",
+            "repository",
+            "sourceCommit",
+            "path",
+            "sha256"
+          ]
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "approved",
+            "withdrawn"
+          ]
+        },
+        "approval": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "actor": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "decisionReference": {
+              "type": "string",
+              "format": "uri"
+            },
+            "approvedAt": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "required": [
+            "actor",
+            "decisionReference",
+            "approvedAt"
+          ]
+        },
+        "withdrawal": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "actor": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "decisionReference": {
+              "type": "string",
+              "format": "uri"
+            },
+            "approvedAt": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          "required": [
+            "actor",
+            "decisionReference",
+            "approvedAt"
+          ]
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "criterion": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "evidenceStatus": {
+              "enum": [
+                "unverified",
+                "partial",
+                "verified"
+              ]
+            },
+            "evidence": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          },
+          "required": [
+            "criterion",
+            "evidenceStatus",
+            "evidence"
+          ]
+        },
+        "qualityScenario": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "stakeholder": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "concern": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "stimulus": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "response": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "measure": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "historicalStatus": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "\\S"
+            },
+            "historicalEvidence": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            }
+          },
+          "required": [
+            "name",
+            "stakeholder",
+            "concern",
+            "stimulus",
+            "response",
+            "measure",
+            "historicalStatus",
+            "historicalEvidence"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "owner",
+        "scopeIds",
+        "statement",
+        "source",
+        "status",
+        "verification"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "approved"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "required": [
+              "approval"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "withdrawn"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "required": [
+              "withdrawal"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "proposed"
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "not": {
+              "required": [
+                "approval"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "verification": {
+                "properties": {
+                  "evidenceStatus": {
+                    "const": "verified"
+                  }
+                },
+                "required": [
+                  "evidenceStatus"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "verification"
+            ],
+            "type": "object"
+          },
+          "then": {
+            "properties": {
+              "verification": {
+                "properties": {
+                  "evidence": {
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            },
+            "type": "object"
+          }
+        }
+      ]
+    },
+    "scopes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+              },
+              "kind": {
+                "enum": [
+                  "factory",
+                  "shared",
+                  "product"
+                ]
+              },
+              "repositoryIds": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "productId": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "repositoryIds"
+            ],
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "product"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "then": {
+                  "required": [
+                    "productId"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "scopes"
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "decisionReference": {
+          "type": "string",
+          "format": "uri"
+        },
+        "approvedAt": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "actor",
+        "decisionReference",
+        "approvedAt"
+      ]
+    }
+  }
+}

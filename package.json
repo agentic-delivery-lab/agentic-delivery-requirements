@@ -1,0 +1,14 @@
+{
+  "name": "@agentic-delivery/requirements",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.3.4",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "requirements:check": "node tools/validate-requirements.mjs",
+    "baseline:prepare": "node tools/prepare-baseline.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": { "ajv": "8.17.1", "ajv-formats": "3.0.1", "yaml": "2.9.0" }
+}

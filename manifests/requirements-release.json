@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "requirementsId": "urn:agentic-delivery:requirements:authority",
+  "sourceRepository": "agentic-delivery-lab/agentic-delivery-requirements",
+  "repositoryId": 1416207421,
+  "version": "0.1.0-draft.1",
+  "sourceCommit": "390884e6a58941662ad9ef4831d96666bea90067",
+  "contentSha256": "81432555fb5e59556fd4b787f3ae34f3962d71eb0db8c86cb30a52776cefa4fb",
+  "status": "draft",
+  "authorityDecision": {
+    "repository": "agentic-delivery-lab/agentic-delivery-architecture",
+    "sourceCommit": "a2189d491a65e643033ed193e834dde872277474",
+    "path": "decisions/0024-centralize-approved-requirements-in-requirements-authority.md",
+    "sha256": "631afdfeb185752216f2dc1bc78bd1a501151e7fe9fa9c01dd5e1807ffda1678",
+    "decisionId": "ADR-0024"
+  },
+  "catalogPaths": [
+    "requirements/factory.yml"
+  ],
+  "approvedRequirementIds": []
+}
