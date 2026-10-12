@@ -1,0 +1,5 @@
+schemaVersion: 1
+scopes:
+  - id: factory
+    kind: factory
+    repositoryIds: [1358455028, 1380894616, 1380894656, 1380894705, 1368850419, 1380894756, 1416207421]
