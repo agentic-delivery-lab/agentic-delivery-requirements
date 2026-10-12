@@ -1,0 +1,164 @@
+schemaVersion: 2
+scenarios:
+  - id: QR-001
+    name: preserve originating repository identity
+    stakeholder: organization-operator
+    concern: a valid lifecycle event must never target the controller repository by accident
+    stimulus: A lifecycle event arrives from an enrolled repository.
+    response: The source repository ID is checked and retained through routing, mutation, and evidence.
+    measure: Zero mutations target a repository ID other than the event origin or an explicitly approved control-plane record.
+    evidence: [ADR-0012, ADR-0018, system-evidence.yml#participant-modes-and-release-pins]
+    status: target; no end-to-end runtime evidence yet
+  - id: QR-002
+    name: safe controller upgrade and rollback
+    stakeholder: repository-owner
+    concern: a release must not silently change behavior or make recovery ambiguous
+    stimulus: A compatible controller, Architecture, Primitive, or Distribution release is proposed.
+    response: The participant validates the exact source commit, digest, contract versions, repository identity, and rollback pin in shadow mode before activation.
+    measure: Upgrade and rollback both restore the expected immutable commit and content digest with no untracked consumer files.
+    evidence: [ADR-0018, ADD-0001, system-evidence.yml#participant-modes-and-release-pins]
+    status: target; participants observed in shadow mode
+  - id: QR-003
+    name: complete ADR impact traceability
+    stakeholder: architecture-reviewer
+    concern: a Primitive must not reference an unknown or non-canonical ADR
+    stimulus: A Primitive release adds, changes, or removes an ADR reference.
+    response: The Architecture release lists the exact local ADR set and the generated index resolves every pinned Primitive reference to one local record.
+    measure: Release ADR IDs equal local ADR file IDs; every Primitive ADR reference resolves once; unknown references fail; externalAdrs is empty; the generated index reproduces exactly.
+    evidence: [ADR-0013, ADR-0020, architecture/references/decision-inventory.yml]
+    status: Local resolution is validated in this proposal; semantic ADR impact review and Primitive release update enforcement remain a Primitive-phase contract
+  - id: QR-004
+    name: preserve issue-field semantics during rename
+    stakeholder: organization-operator
+    concern: native Issue Type, lifecycle position, authorization state, governance metadata, and runner state stay separate
+    stimulus: Delivery Readiness is considered for migration to Delivery State.
+    response: One existing field and its option identities are inventoried; old and new readers compare by option ID in shadow; rollout has an exact rollback.
+    measure: Exactly two lifecycle-related organization issue fields remain; one Delivery State field identity and all option identities are preserved; both fields are visible on every intended native Issue Type and issues without type.
+    evidence: [ADR-0012, ADR-0019, system-evidence.yml#organization-issue-fields]
+    status: target; UI pinning and rename capability are unverified
+  - id: QR-005
+    name: safe Distribution conflict handling
+    stakeholder: consumer-repository-owner
+    concern: bootstrap must not overwrite unowned local files or strand a partial upgrade
+    stimulus: A pinned bundle applies to a repository with an existing conflicting file.
+    response: Bootstrap reports the conflict before mutation or completes an auditable managed update that can be rolled back to the prior bundle.
+    measure: Conflict tests leave repository contents unchanged; rollback reproduces the previous bundle digest and target-file set.
+    evidence: [ADD-0001, system-evidence.yml#primitive-and-distribution-drafts]
+    status: contract requirement; rollback proof remains open
+  - id: QR-006
+    name: readable architecture without renderer tooling
+    stakeholder: all-maintainers
+    concern: reviewers must understand architecture sources and decisions in a normal text editor
+    stimulus: A reviewer opens the repository without diagram or documentation tooling.
+    response: Markdown, YAML, JSON, Mermaid, PlantUML, and Structurizr sources explain the relevant view and its scope.
+    measure: Every diagram has a checked-in text source; every arc42 section names its evidence basis and does not rely on a rendered image alone.
+    evidence: [ADR-0001, ADR-0003, arc42 documentation and method]
+    status: target; checked-in source is available
+  - id: QR-007
+    name: repository-scoped enforcement claims
+    stakeholder: organization-maintainer
+    concern: a passing check in one repo must not be reported as a guarantee for all repos
+    stimulus: A review reports required checks, branch protection, or an App capability.
+    response: The claim names the repository, observation time, exact source, and API/UI limitation.
+    measure: Each live claim has a repository identity and evidence link; unknown settings are labeled unknown.
+    evidence: [ADR-0011, ADR-0016, system-evidence.yml#repository-releases-and-rulesets]
+    status: target; private ruleset status remains unknown
+  - id: QR-008
+    name: independent semantic review
+    stakeholder: repository-writer
+    concern: authorship and validation must be separate for high-risk or long-running work
+    stimulus: A fan-out/fan-in work path reaches implementation completion.
+    response: Read-only researchers are synthesized by one writer and a separate Validator checks the result with cited sources.
+    measure: The Validator identity differs from the implementation author and reports each finding as evidence-backed, advisory, or inconclusive.
+    evidence: [ADR-0011, "recovery issue #59"]
+    status: target; integrated orchestration path not yet demonstrated
+  - id: QR-010
+    name: verifiable release and projection provenance
+    stakeholder: architecture-maintainer, primitive-maintainer, distribution-maintainer
+    concern: generated contracts and consumer artifacts must identify the exact sources from which they were produced
+    stimulus: An Architecture, Primitive, or Distribution release or projection is generated or proposed for activation.
+    response: The Architecture release records its source identity, digest, contract version, and exact decision IDs; the inventory records immutable source pins for imported decisions.
+    measure: The source commit reproduces the release digest; each imported original SHA-256 matches `git show <sourceCommit>:<sourcePath>`; every declared source-preserving adaptation is exact and reviewable; every generated consumer artifact matches its versioned manifest before activation.
+    evidence: [ADR-0013, ADR-0018, ADR-0020, ADP-0001, ADD-0001, architecture/generated/architecture-release.json, architecture/references/decision-inventory.yml, system-evidence.yml#primitive-and-distribution-drafts]
+    status: Architecture source pins and draft digest are validated in this proposal; consumer projection validation and Distribution activation evidence remain open
+  - id: QR-011
+    name: route semantic decision review by bounded context
+    stakeholder: context-steward, architecture-reviewer
+    concern: canonical text ownership must not bypass the affected context's semantic review
+    stimulus: A canonical decision changes with one or more declared bounded contexts.
+    response: The Architecture inventory derives the required semantic reviewer roles from record domains and the bounded-context steward repository map.
+    measure: Every inventory domain resolves to exactly one stewarding repository and evidence path pinned in the audit snapshot; a cross-context record routes to every affected context; a repository mapping alone is never reported as human approval.
+    evidence: [ADR-0020, architecture/domain/bounded-contexts.yml, system-evidence.yml#repositories]
+    status: Repository routing is structurally validated; independent human steward approval is blocked by the current one-member/CODEOWNERS gate
+  - id: QR-012
+    name: safe workspace and artifact disposal
+    stakeholder: repository-owner, execution-profile-owner
+    concern: completed work must not accumulate disposable state or erase retained or active work
+    stimulus: A task starts, completes after approved integration, fails during artifact initialization, is cancelled, or requests cleanup while another session or remote update is active.
+    response: Discover ownership, every registered worktree and remote-tracking refs before pruning; preserve uniquely retained commits and dirty, unknown, unmerged and active work; prove exact-tip ancestry against the fetched remote default branch; hold an exclusive cleanup lease across final checks and removal to block new workspace-use leases; reject changed remote tips; execute registered producer teardown and report retained blockers.
+    measure: Zero retained or active work is deleted; a concurrent tip change blocks deletion and a concurrent session cannot acquire workspace use during cleanup; no owned completed disposable artifact remains without an explicit retention reason; each supported profile identifies its installed policy pin and cleanup record.
+    evidence: [ADR-0004, ADR-0007, AP-003, "https://github.com/agentic-delivery-lab/agentic-delivery-architecture/issues/7"]
+    status: target; reusable deterministic implementation and supported-profile rollout require reviewed owner changes and run evidence
+  - id: QR-013
+    name: project-only cards cannot authorize execution
+    stakeholder: organization-operator, repository-owner
+    concern: portfolio planning must not bypass source Issue identity or authorization
+    stimulus: A Project-only card or Project event requests agent implementation.
+    response: The Control Plane leaves work unchanged and requires a source Issue in its owning repository before deterministic identity, actor-permission, policy, type, and transition checks can authorize execution.
+    measure: Zero model calls, repository writes, issue-field writes, pull requests, releases, or activations start from a Project-only card; every authorized run identifies the source repository and Issue.
+    evidence: [ADR-0012, ADR-0023, AP-004, strategy/organizational-strategy.yml#projectPlanning]
+    status: target; Control Plane fixture and live Project integration evidence remain open
+  - id: QR-014
+    name: Project access and identity failures cannot authorize work
+    stakeholder: organization-operator, security-reviewer
+    concern: missing or ambiguous Project data must not authorize or redirect work
+    stimulus: Project identity, membership, fields, visibility, repository identity, or permission is missing, unreadable, or inconsistent.
+    response: The planning view reports missing or ambiguous Project context and never treats it as authorization. The Control Plane re-fetches the origin Issue and independently checks its identity, actor permission, participant, policy, type, and transition. Hold only operations that require Project context; an otherwise authorized Issue-first security or recovery operation may proceed without Project access.
+    measure: Offline fixtures prove that missing Project access or mismatched Project identity never authorizes Project-dependent work, and that an otherwise authorized Issue-first security or recovery route remains available without a Project read. Missing origin-Issue permission or identity leaves Issue and repository state unchanged.
+    evidence: [ADR-0023, AP-002, system-evidence.yml#portfolio-issue-project-inventory-20261009-1839, system-evidence.yml#github-app-installation-inventory-20261009-1845]
+    status: target; current organization, user, and repository Project inventory under an active organization admin identity returned no Projects; feature capability flags are true, while Project field visibility, App access, and live integration remain unknown
+  - id: QR-015
+    name: evaluation replay reproduces an attributable result
+    stakeholder: capability-consumer, independent-reviewer
+    concern: an agent or policy change must be compared against a stable and representative baseline
+    stimulus: A candidate capability, controller, grader, or model version is evaluated.
+    response: A versioned offline dataset, grader definition, candidate source pin, baseline, and result are recorded; semantic judgments remain separately labeled.
+    measure: Replaying the same fixture and deterministic graders from the same pins reproduces the same pass/fail result; every candidate report identifies dataset, grader, source commit, digest, and reviewer.
+    evidence: [strategy/organizational-strategy.yml#SG-04, strategy/organizational-strategy.yml#SG-07, evaluation/README.md, contracts/evaluation-report.schema.json, evaluation/examples/agent-capability-report.yml, "https://github.com/agentic-delivery-lab/agentic-delivery-primitives/issues/3"]
+    status: target; Architecture proposes the versioned report schema and synthetic fixture in PR #14; Primitives #3 owns datasets, deterministic graders, and replay; measured baselines, independent review, and runtime integration remain open
+  - id: QR-016
+    name: recursive improvement returns to human-prioritized work
+    stakeholder: maintainer, independent-reviewer
+    concern: evaluation or runtime findings must not become unbounded self-executing work
+    stimulus: Evaluation, incident, user feedback, or product observation identifies a possible factory or product improvement.
+    response: The finding links to a new or updated Issue in the owning repository, enters the portfolio Project for human prioritization, and starts only from that authorized Issue.
+    measure: Every actionable finding has a source evidence link and owner Issue; zero findings directly mutate agent policy, activate a participant, merge, release, or trigger another implementation without human prioritization and authorization.
+    evidence: [ADR-0023, AP-004, strategy/organizational-strategy.yml#guardrails, "https://github.com/agentic-delivery-lab/agentic-delivery/issues/103", "https://github.com/agentic-delivery-lab/agentic-delivery-architecture/issues/15"]
+    status: target; offline finding routing is owned by Control Plane #103; the portfolio Project awaits the human decision in Architecture #15, and recursive-run fixture coverage remains open
+  - id: QR-017
+    name: bound each authorized agentic operation by an inspectable resource budget
+    stakeholder: maintainer, organization-operator, capability-consumer
+    concern: repeated turns, tools, retries, child invocations, and runtime quotas must not create unbounded duration or cost
+    stimulus: The Control Plane admits an authorized Issue operation that invokes Codex, tools, retries, or another bounded operation.
+    response: A versioned admission policy fixes the available wall-time, turn/invocation, retry, and recursion limits before execution; runtime quota or spend limits are recorded when the approved runtime exposes them. Reaching a limit stops further privileged work and records measured usage and the stop reason.
+    measure: Every admitted operation has a pinned budget and terminal usage/limit receipt; zero privileged invocations occur after a hard limit; unavailable quota or spend data remains explicitly unknown.
+    evidence: [ADR-0009, ADR-0015, strategy/organizational-strategy.yml#successMeasures/SM-010, "https://github.com/agentic-delivery-lab/agentic-delivery/issues/105"]
+    status: target; existing issue and bot-hop gates do not yet provide accepted per-run budget and usage evidence across the pinned runner path
+  - id: QR-018
+    name: make runtime failures observable and safely recoverable
+    stakeholder: organization-operator, repository-owner, maintainer
+    concern: failure recovery must preserve source identity and distinguish delivery replay, execution continuation, and evaluation replay
+    stimulus: A webhook delivery, Action/Codex operation, or recovery attempt is interrupted, duplicated, or fails.
+    response: The owning controller records source repository and Issue identity, immutable controller/runner pins, event and operation IDs, failure class, and terminal disposition. Webhook delivery replay, resumable Codex continuation, and evaluation replay use distinct evidence and idempotency boundaries; work is recovered or held for a named human action without duplicate protected writes.
+    measure: Every observed interruption has a durable receipt and recovered-or-held disposition; repeated delivery produces zero duplicate protected writes; each recovery path identifies its own mechanism and evidence.
+    evidence: [ADR-0015, ADR-0022, architecture/references/system-evidence.yml#participant-modes-and-release-pins, "https://github.com/agentic-delivery-lab/agentic-delivery/issues/105"]
+    status: target; current source and unit evidence do not establish end-to-end live interruption, recovery, or replay behavior
+  - id: QR-019
+    name: protect comparative evaluations from drift, contamination, selection, and self-grading
+    stakeholder: independent-reviewer, capability-consumer, maintainer
+    concern: favorable evaluation claims must remain tied to a representative, pre-registered case set and graders whose behavior and independence can be reviewed
+    stimulus: A candidate capability, controller, model, or product change is compared with a baseline using deterministic or semantic graders.
+    response: The report pins the dataset partition, eligible population, case-selection policy and dataset-integrity assessment before the run, complete selected case set, grader and evaluator versions, and calibration evidence for each exact evaluator version. Comparative claims use validation or holdout cases whose pre-run integrity assessment found no known contamination, with independent graders and review; an evaluator version change requires fresh calibration, while unknown independence, drift, suspected contamination, or unreviewed exclusions make the result inconclusive.
+    measure: Every comparative claim has exact case coverage, pre-run selection and integrity records, validation or holdout provenance with no known contamination, pinned evaluator versions with matching verified calibration, and independent review; any missing condition blocks an improvement, regression, or no-change claim.
+    evidence: [architecture/contracts/evaluation-report.schema.json, architecture/evaluation/README.md, strategy/organizational-strategy.yml#successMeasures/SM-012]
+    status: target; the report contract validates the evidence envelope, but no representative dataset, calibration run, independent result review, or live claim is evidenced
