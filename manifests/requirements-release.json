@@ -3,10 +3,10 @@
   "requirementsId": "urn:agentic-delivery:requirements:authority",
   "sourceRepository": "agentic-delivery-lab/agentic-delivery-requirements",
   "repositoryId": 1416207421,
-  "version": "0.2.0-draft.1",
+  "version": "1.0.0",
   "sourceCommit": "cd660b5c5a86c8274b6ad73b3d64dc58a72607f9",
   "contentSha256": "84125af530a5fcf12fcd0881212cfc934eaad11ad2bab1b7a3d88854872d93fe",
-  "status": "draft",
+  "status": "approved",
   "authorityDecision": {
     "repository": "agentic-delivery-lab/agentic-delivery-architecture",
     "sourceCommit": "a2189d491a65e643033ed193e834dde872277474",
@@ -17,5 +17,29 @@
   "catalogPaths": [
     "requirements/factory.yml"
   ],
-  "approvedRequirementIds": []
+  "approvedRequirementIds": [
+    "QR-001",
+    "QR-002",
+    "QR-003",
+    "QR-004",
+    "QR-005",
+    "QR-006",
+    "QR-007",
+    "QR-008",
+    "QR-010",
+    "QR-011",
+    "QR-012",
+    "QR-013",
+    "QR-014",
+    "QR-015",
+    "QR-016",
+    "QR-017",
+    "QR-018",
+    "QR-019"
+  ],
+  "approval": {
+    "actor": "sjefsharp",
+    "decisionReference": "https://github.com/agentic-delivery-lab/agentic-delivery-requirements/pull/4",
+    "approvedAt": "2026-10-13"
+  }
 }
