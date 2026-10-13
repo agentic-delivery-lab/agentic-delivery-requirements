@@ -24,6 +24,12 @@ async function fixture(run) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'requirements-test-'));
   try {
     for (const entry of ['AGENTS.md', 'README.md', 'contracts', 'requirements', 'manifests']) await cp(path.join(root, entry), path.join(directory, entry), { recursive: true });
+    const draftPath = path.join(directory, 'manifests/requirements-release.json');
+    const draft = JSON.parse(await readFile(draftPath, 'utf8'));
+    draft.status = 'draft';
+    delete draft.approval;
+    delete draft.withdrawal;
+    await writeFile(draftPath, JSON.stringify(draft, null, 2) + '\n');
     execFileSync('git', ['init', '-q', '--initial-branch=main', directory]);
     execFileSync('git', ['-C', directory, 'add', '.']);
     execFileSync('git', ['-C', directory, '-c', 'user.name=Requirements test', '-c', 'user.email=requirements-test@example.invalid', 'commit', '-qm', 'Fixture source']);
@@ -81,14 +87,15 @@ test('draft baseline reproduces its exact source and cannot masquerade as approv
   await assert.rejects(validateBaseline(directory, { requireApproved: true }), /approved baseline/);
   await assert.rejects(validateBaseline(directory, { expectedRepositoryId: manifest.repositoryId + 1 }), /identity mismatch/);
   assert.equal(result.status, 'draft');
-  assert.deepEqual(result.approvedRequirementIds, []);
+  // Eligible records inside a draft container still cannot authorize admission.
   manifest.status = 'approved';
   await writeFile(path.join(directory, 'manifests/requirements-release.json'), JSON.stringify(manifest));
   await assert.rejects(validateBaseline(directory), /approval|non-empty|approved/i);
 }));
 
 test('tampered requirements and altered source identity fail exact baseline validation', async () => fixture(async (directory, manifest) => {
-  await writeFile(path.join(directory, 'requirements/factory.yml'), 'schemaVersion: 1\ncatalogId: factory\nrequirements: []\n# changed\n');
+  const catalogPath = path.join(directory, 'requirements/factory.yml');
+  await writeFile(catalogPath, (await readFile(catalogPath, 'utf8')) + '\n# changed\n');
   await assert.rejects(validateBaseline(directory), /digest/);
   manifest.sourceRepository = 'agentic-delivery-lab/untrusted';
   await writeFile(path.join(directory, 'manifests/requirements-release.json'), JSON.stringify(manifest));

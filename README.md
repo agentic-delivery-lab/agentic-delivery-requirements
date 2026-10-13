@@ -3,15 +3,21 @@
 This public repository is the selected central authority for approved factory,
 shared and product requirements. [ADR-0024](https://github.com/agentic-delivery-lab/agentic-delivery-architecture/blob/a2189d491a65e643033ed193e834dde872277474/decisions/0024-centralize-approved-requirements-in-requirements-authority.md)
 in Architecture owns the authority placement decision. This repository's
-immutable GitHub ID is `1416207421`. Source work is tracked by [Requirements #1](https://github.com/agentic-delivery-lab/agentic-delivery-requirements/issues/1). This initial administrative bootstrap has an empty factory
-catalog and a draft baseline; it has no approved obligations and is absent
-from active participant enrollment. It is not Milestone A delivery evidence.
+immutable GitHub ID is `1416207421`. Source work is tracked by [Requirements #1](https://github.com/agentic-delivery-lab/agentic-delivery-requirements/issues/1). The first W03 baseline was an empty administrative draft. W04 transfers all
+18 QR IDs with their exact historical text, status and evidence, and adds five
+inferred execution candidates (FR-001–FR-005). Candidate records are not
+normative, and numerical resource bounds remain proposed pending W08 admission.
 
-Architecture retains the existing normative QR catalog until W04 records an
-accepted cutover. Candidate transfers here remain explicitly non-normative.
-At cutover, Architecture references or reproduces the exact central baseline;
-there must be one editable normative catalog. Existing QR IDs and historical
-source text, evidence and status survive. A target is not a verified outcome.
+An approved W04 baseline is eligible for authority transfer, not automatically
+adopted by every consumer. Effective QR ownership changes only when Architecture
+accepts an exact immutable Requirements baseline pin and makes its local QR
+catalog a checked projection. Until that acceptance, Architecture retains the
+normative source and the transferred copies are non-effective for QR authority.
+At cutover, there is one editable normative catalog here; old source commits
+and the non-normative migration fixture preserve historical provenance. No
+strategy goal, runtime participant or actual quality outcome is adopted through
+this transfer. Trusted consumers must verify the selected authority/adoption
+pin as well as approved status, origin, digest and explicit applicability.
 
 Records contain stable ID, owner, explicit scope IDs, statement, immutable source
 provenance and verification criterion. `proposed`, `approved` and `withdrawn`
