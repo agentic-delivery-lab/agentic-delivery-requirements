@@ -41,7 +41,9 @@ async function sourceFile(directory, file) {
   return data;
 }
 async function git(directory, args) {
-  return (await gitAsync('git', ['-C', directory, ...args], { encoding: 'buffer', maxBuffer: 32 * 1024 * 1024 })).stdout;
+  return (await gitAsync('git', ['--no-lazy-fetch', '--no-replace-objects', '-C', directory, ...args], {
+    encoding: 'buffer', maxBuffer: 32 * 1024 * 1024,
+  })).stdout;
 }
 async function schemas(directory) {
   const ajv = new Ajv2020({ strict: true, strictRequired: false, allErrors: true });
@@ -138,6 +140,82 @@ export async function validateBaseline(directory = root, { requireApproved = fal
     if (await contentDigest(directory, revision) !== manifest.contentSha256) throw new Error(`Requirements digest mismatch at ${revision}`);
   }
   return { status: manifest.status, sourceCommit: manifest.sourceCommit, contentSha256: manifest.contentSha256, ...catalogs };
+}
+
+/**
+ * Derive reference-only applicability from an admitted immutable baseline.
+ * directory locates trusted local Git objects; no checkout, fetch or write occurs.
+ * pin: {repository, repositoryId, commit, version, contentSha256} is caller-admitted,
+ * not selected by Issue/Project text. Hosting identity and adoption remain caller gates.
+ * Returns {schemaVersion:1, authority:{...pin,sourceCommit}, repositories:[
+ *   {repositoryId,scopeIds,requirements:[{id,catalogPath,scopeIds}]}]} in stable order.
+ * Throws for invalid/unapproved inputs. The output does not authorize execution.
+ */
+export async function buildApplicabilityIndex(directory, pin) {
+  if (pin?.repository !== 'agentic-delivery-lab/agentic-delivery-requirements'
+    || pin.repositoryId !== 1416207421 || !immutable.test(pin.commit ?? '')
+    || !/^[0-9a-f]{64}$/.test(pin.contentSha256 ?? '') || typeof pin.version !== 'string') {
+    throw new Error('Applicability requires a complete immutable Requirements authority pin');
+  }
+  if ((await git(directory, ['cat-file', '-t', pin.commit])).toString('utf8').trim() !== 'commit') {
+    throw new Error('Applicability baseline pin must identify a commit object');
+  }
+  const committedFile = async (file) => {
+    const data = await git(directory, ['show', `${pin.commit}:${file}`]);
+    if (data.length > limit) throw new Error(`Input exceeds 1 MiB: ${file}`);
+    return data;
+  };
+  const validators = await schemas(root);
+  const manifest = readJson(await committedFile(manifestPath));
+  check(validators.baseline, manifest, 'baseline');
+  if (manifest.status !== 'approved') throw new Error('Applicability requires an approved baseline');
+  if (manifest.sourceRepository !== pin.repository || manifest.repositoryId !== pin.repositoryId
+    || manifest.version !== pin.version || manifest.contentSha256 !== pin.contentSha256) {
+    throw new Error('Applicability authority identity/version/digest pin mismatch');
+  }
+  if ((await git(directory, ['cat-file', '-t', manifest.sourceCommit])).toString('utf8').trim() !== 'commit') {
+    throw new Error('Applicability prepared source must identify a commit object');
+  }
+  await git(directory, ['merge-base', '--is-ancestor', manifest.sourceCommit, pin.commit]);
+  for (const revision of new Set([pin.commit, manifest.sourceCommit])) {
+    if (await contentDigest(directory, revision) !== pin.contentSha256) throw new Error(`Applicability digest mismatch at ${revision}`);
+  }
+  const paths = (await git(directory, ['ls-tree', '-r', '--name-only', pin.commit])).toString('utf8').trim().split('\n');
+  const catalogsInTree = paths.filter(file => file.startsWith('requirements/') && /\.ya?ml$/.test(file) && file !== 'requirements/scopes.yml').sort();
+  if (JSON.stringify(catalogsInTree) !== JSON.stringify([...manifest.catalogPaths].sort())) throw new Error('Applicability catalog coverage mismatch');
+  if (!manifest.catalogPaths.includes('requirements/factory.yml')) throw new Error('Applicability requires the factory catalog');
+  const scopes = readYaml((await committedFile('requirements/scopes.yml')).toString('utf8'));
+  const catalogs = await Promise.all(manifest.catalogPaths.map(async catalogPath => ({
+    catalogPath, catalog: readYaml((await committedFile(catalogPath)).toString('utf8')),
+  })));
+  const validated = await validateCatalogs(root, { scopes, catalogs: catalogs.map(entry => entry.catalog) });
+  if (scopes.scopes.some(scope => scope.repositoryIds.some(id => !Number.isSafeInteger(id) || id < 1))) {
+    throw new Error('Applicability requires safe native repository IDs in scopes');
+  }
+  if (JSON.stringify(validated.approvedRequirementIds) !== JSON.stringify(manifest.approvedRequirementIds)) {
+    throw new Error('Applicability approved IDs do not cover the baseline');
+  }
+  const repositoryIds = [...new Set(scopes.scopes.flatMap(scope => scope.repositoryIds))].sort((a, b) => a - b);
+  const repositories = repositoryIds.map(repositoryId => {
+    const scopeIds = scopes.scopes.filter(scope => scope.repositoryIds.includes(repositoryId)).map(scope => scope.id).sort();
+    const requirements = catalogs.flatMap(({ catalogPath, catalog }) => catalog.requirements
+      .filter(record => record.status === 'approved' && record.scopeIds.some(id => scopeIds.includes(id)))
+      .map(record => ({ id: record.id, catalogPath, scopeIds: record.scopeIds.filter(id => scopeIds.includes(id)).sort() })))
+      .sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+    return { repositoryId, scopeIds, requirements };
+  });
+  const authority = { repository: pin.repository, repositoryId: pin.repositoryId, commit: pin.commit,
+    version: pin.version, contentSha256: pin.contentSha256, sourceCommit: manifest.sourceCommit };
+  return { schemaVersion: 1, authority, repositories };
+}
+
+/** Select only an explicit consumer, revalidating the immutable source; never infer factory scope. */
+export async function selectApplicableRequirements(directory, pin, repositoryId) {
+  if (!Number.isSafeInteger(repositoryId) || repositoryId < 1) throw new Error('Applicability requires a positive native repository ID');
+  const index = await buildApplicabilityIndex(directory, pin);
+  const selected = index.repositories.find(entry => entry.repositoryId === repositoryId);
+  if (!selected) throw new Error('Unknown repository applicability; consumer must hold');
+  return { schemaVersion: index.schemaVersion, authority: index.authority, ...selected };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
