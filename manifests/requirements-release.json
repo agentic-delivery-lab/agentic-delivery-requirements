@@ -6,7 +6,7 @@
   "version": "1.0.1",
   "sourceCommit": "f74030207e4437dc6a3c17387e3d072932ac14ec",
   "contentSha256": "0c14c019dd0a502905acf084301dc8632c0ead7cfd56f310377da7ba44f9cf24",
-  "status": "draft",
+  "status": "approved",
   "authorityDecision": {
     "repository": "agentic-delivery-lab/agentic-delivery-architecture",
     "sourceCommit": "a2189d491a65e643033ed193e834dde872277474",
@@ -36,5 +36,10 @@
     "QR-017",
     "QR-018",
     "QR-019"
-  ]
+  ],
+  "approval": {
+    "actor": "sjefsharp (owner-authorized interactive Codex CLI)",
+    "decisionReference": "https://github.com/agentic-delivery-lab/agentic-delivery-architecture/issues/11",
+    "approvedAt": "2026-10-26"
+  }
 }
