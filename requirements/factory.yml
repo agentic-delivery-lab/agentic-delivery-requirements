@@ -784,7 +784,7 @@
         "factory"
       ],
       "status": "proposed",
-      "statement": "Reserve and persist an operation-wide allowance across retries, restarts and resumes; proposed initial bounds are 30 active minutes, eight model turns, three validation attempts, 100 counted tool calls, no child implementation, at most eight transport attempts and no automatic billing/model fallback.",
+      "statement": "Reserve and persist an operation-wide allowance across retries, restarts and resumes; proposed initial bounds are 30 active minutes, eight model turns, three validation attempts, at most eight controller execution attempts, no child implementation and no automatic billing, account or model fallback. Keep stock Codex; universal tool-call and aggregate native-transport ceilings are withdrawn.",
       "source": {
         "issue": "https://github.com/agentic-delivery-lab/agentic-delivery-requirements/issues/3",
         "repository": "agentic-delivery-lab/agentic-delivery-architecture",
@@ -793,7 +793,7 @@
         "sha256": "f4959d52086113ae8b5e3c66f4390513478d970b6914d1e7e646365a899d8eb2"
       },
       "verification": {
-        "criterion": "Concurrent reservations cannot exceed the admitted policy; resumed consumption is retained; unknown consumption is conservatively charged or held; no protected action follows exhaustion. These numeric bounds remain proposed until W08 policy and interception admission.",
+        "criterion": "Concurrent reservations cannot exceed the admitted policy; resumed consumption is retained; unknown consumption is conservatively charged or held; no protected action follows exhaustion. The supported numeric bounds remain proposed until W08 policy and runtime admission. Unknown tool or native-transport telemetry is not a configured ceiling or a zero-use claim.",
         "evidenceStatus": "unverified",
         "evidence": []
       }
