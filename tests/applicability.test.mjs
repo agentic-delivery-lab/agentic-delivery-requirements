@@ -34,7 +34,7 @@ async function fixture(t, mutate = async () => {}) {
   manifest.contentSha256 = await contentDigest(directory, manifest.sourceCommit);
   await writeFile(file, JSON.stringify(manifest, null, 2) + '\n');
   git('add', '.'); git('commit', '-qm', 'Synthetic baseline binding');
-  return { directory, git, pin: { ...pin, commit: git('rev-parse', 'HEAD'), contentSha256: manifest.contentSha256 } };
+  return { directory, git, pin: { ...pin, version: manifest.version, commit: git('rev-parse', 'HEAD'), contentSha256: manifest.contentSha256 } };
 }
 
 test('the accepted baseline derives exactly seven explicit consumers and only approved references', async () => {

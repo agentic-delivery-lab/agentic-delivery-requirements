@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- FR-003 retains supported shared-operation controls while removing the withdrawn
+  universal tool-call and aggregate native-transport ceilings. Baseline 1.0.1
+  preserves all 18 approved QR records and the five proposed FR statuses; it
+  does not establish runtime satisfaction or activation. Historical 1.0.0 stays
+  immutable.
+
 ### Added
 
 - W04 approved transfer eligibility preserves all 18 original QR IDs, scenario text,
