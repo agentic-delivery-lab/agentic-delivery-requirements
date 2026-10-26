@@ -4,8 +4,8 @@
   "sourceRepository": "agentic-delivery-lab/agentic-delivery-requirements",
   "repositoryId": 1416207421,
   "version": "1.0.1",
-  "sourceCommit": "f74030207e4437dc6a3c17387e3d072932ac14ec",
-  "contentSha256": "0c14c019dd0a502905acf084301dc8632c0ead7cfd56f310377da7ba44f9cf24",
+  "sourceCommit": "37834bf5de7a5d2e25ba811f553b4f6cdf0794d2",
+  "contentSha256": "ad2b1ff24b953d7edee7ba43e8fbc3befd1a8b6078261b798da9696e519a0ad3",
   "status": "approved",
   "authorityDecision": {
     "repository": "agentic-delivery-lab/agentic-delivery-architecture",
