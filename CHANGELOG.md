@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Security
+
+- Update stock Ajv 8.17.1 to 8.18.0 and fast-uri 3.1.8 to 3.1.9 for the
+  schema-validation dependency advisories. Approved baseline bytes, pins and
+  normative requirement statuses are unchanged.
+
 ### Fixed
 
 - FR-003 retains supported shared-operation controls while removing the withdrawn
